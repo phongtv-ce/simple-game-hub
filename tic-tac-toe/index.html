@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tic-Tac-Toe</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="game">
+    <header class="game-header">
+      <h1>Tic-Tac-Toe</h1>
+      <p id="status-message" class="status-message"></p>
+    </header>
+
+    <section class="rules" aria-labelledby="rules-title">
+      <h2 id="rules-title">Rules</h2>
+      <ul>
+        <li>Two players take turns: <strong>X</strong> goes first, then <strong>O</strong>.</li>
+        <li>Click an empty cell to place your mark.</li>
+        <li>Set <strong>N</strong> to play on an N x N board (default is 3).</li>
+        <li>
+          Win by filling an entire line with your mark:
+          a row, a column, or either main diagonal.
+        </li>
+        <li>If every cell is filled and no one has won, the game is a draw.</li>
+      </ul>
+    </section>
+
+    <section class="settings" aria-labelledby="settings-title">
+      <h2 id="settings-title">Board size</h2>
+      <form id="board-size-form" class="settings-form">
+        <label for="board-size-input">N (N x N board)</label>
+        <div class="settings-row">
+          <input
+            id="board-size-input"
+            type="number"
+            min="3"
+            max="15"
+            value="3"
+          >
+          <button type="submit" class="button">Apply</button>
+          <button type="button" id="reset-button" class="button button-secondary">
+            Reset
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <div id="board" class="board" aria-label="Tic-tac-toe board"></div>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>

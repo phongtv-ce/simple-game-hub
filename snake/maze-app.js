@@ -80,7 +80,7 @@ function updateScorePanels() {
 function renderBoard() {
   canvasContext.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
   drawMazeScene(canvasContext, game, CELL_SIZE, currentTheme);
-  drawSnake(canvasContext, game.snakeSegments, CELL_SIZE, game.currentDirection);
+  drawSnake(canvasContext, game.snakeSegments, CELL_SIZE, game.queuedDirection);
 
   if (game.foodCell) {
     drawFoodAt(canvasContext, game.foodCell.x, game.foodCell.y, CELL_SIZE);
@@ -186,6 +186,7 @@ SnakeShell.bindKeyboard({
   onStartWhenIdle: resumeStage,
   onPause: () => setStatus('Paused. Press Space to resume.', 'idle'),
   onResume: resumePausedGame,
+  onDirectionChange: renderBoard,
 });
 
 window.addEventListener('load', () => {

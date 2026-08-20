@@ -45,7 +45,7 @@ function updateModeDisplay() {
 
 function renderBoard() {
   canvasContext.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
-  drawSnake(canvasContext, game.snakeSegments, CELL_SIZE, game.currentDirection);
+  drawSnake(canvasContext, game.snakeSegments, CELL_SIZE, game.queuedDirection);
 
   if (game.foodCell) {
     drawFoodAt(canvasContext, game.foodCell.x, game.foodCell.y, CELL_SIZE);
@@ -111,6 +111,7 @@ SnakeShell.bindKeyboard({
   onStartWhenIdle: startNewGame,
   onPause: () => setStatus('Paused. Press Space to resume.', 'idle'),
   onResume: () => setStatus('Use arrow keys to move. Space to pause. Hold a key ~0.2s for 5× speed.', 'playing'),
+  onDirectionChange: renderBoard,
 });
 
 window.addEventListener('load', () => {

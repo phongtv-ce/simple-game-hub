@@ -152,8 +152,14 @@ const SnakeShell = (() => {
     };
   }
 
-  function bindKeyboard({ loop, game, onStartWhenIdle, onPause, onResume }) {
+  function bindKeyboard({ loop, game, onStartWhenIdle, onPause, onResume, onDirectionChange }) {
     const { getDirectionFromKey, isStartKey } = SnakeCore;
+
+    function handleDirectionInput(event) {
+      if (game.handleDirectionKey(event)) {
+        onDirectionChange?.();
+      }
+    }
 
     window.addEventListener('keydown', (event) => {
       const direction = getDirectionFromKey(event.key);
@@ -184,7 +190,7 @@ const SnakeShell = (() => {
         event.preventDefault();
 
         if (game.isGameActive) {
-          game.handleDirectionKey(event);
+          handleDirectionInput(event);
           return;
         }
 
@@ -198,14 +204,14 @@ const SnakeShell = (() => {
       }
 
       if (game.isGameActive && loop.isRunning()) {
-        game.handleDirectionKey(event);
+        handleDirectionInput(event);
         loop.handleBoostKeyDown(event);
         return;
       }
 
       if (game.isGameActive && !loop.isRunning() && direction) {
         event.preventDefault();
-        game.handleDirectionKey(event);
+        handleDirectionInput(event);
       }
     });
 

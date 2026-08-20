@@ -1,3 +1,5 @@
+// --- Constants ---
+
 const CELL_EMPTY = 0;
 const PLAYER_X = 1;
 const PLAYER_O = 2;
@@ -6,18 +8,24 @@ const MIN_BOARD_SIZE = 3;
 const MAX_BOARD_SIZE = 15;
 const DEFAULT_BOARD_SIZE = 3;
 
+// --- DOM ---
+
 const boardElement = document.getElementById('board');
 const statusMessageElement = document.getElementById('status-message');
 const boardSizeForm = document.getElementById('board-size-form');
 const boardSizeInput = document.getElementById('board-size-input');
 const resetButton = document.getElementById('reset-button');
 
-let boardSize = DEFAULT_BOARD_SIZE;
-let boardCells = [];
-let activePlayer = PLAYER_X;
-let isGameOver = false;
+// --- Game state ---
 
-function getPlayerMark(player) {
+let boardSize = DEFAULT_BOARD_SIZE;
+let board = [];
+let currentPlayer = PLAYER_X;
+let gameOver = false;
+
+// --- Helpers ---
+
+function getMark(player) {
   return player === PLAYER_X ? 'X' : 'O';
 }
 
@@ -25,156 +33,170 @@ function createEmptyBoard(size) {
   return Array.from({ length: size }, () => Array(size).fill(CELL_EMPTY));
 }
 
-function readBoardSizeFromInput() {
-  const inputValue = Number(boardSizeInput.value);
-  const isValidSize =
-    Number.isInteger(inputValue) &&
-    inputValue >= MIN_BOARD_SIZE &&
-    inputValue <= MAX_BOARD_SIZE;
+function indexToRowCol(index) {
+  return {
+    row: Math.floor(index / boardSize),
+    col: index % boardSize,
+  };
+}
 
-  if (!isValidSize) {
-    alert(`Board size must be a whole number between ${MIN_BOARD_SIZE} and ${MAX_BOARD_SIZE}.`);
-    return false;
+function isValidBoardSize(value) {
+  return (
+    Number.isInteger(value) &&
+    value >= MIN_BOARD_SIZE &&
+    value <= MAX_BOARD_SIZE
+  );
+}
+
+// --- Rendering ---
+
+function setCellMark(button, player) {
+  button.textContent = getMark(player);
+  button.classList.toggle('cell--x', player === PLAYER_X);
+  button.classList.toggle('cell--o', player === PLAYER_O);
+}
+
+function createCellButton(index) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'cell';
+  button.dataset.index = index;
+
+  const { row, col } = indexToRowCol(index);
+  if (board[row][col] !== CELL_EMPTY) {
+    setCellMark(button, board[row][col]);
   }
 
-  boardSize = inputValue;
-  return true;
-}
-
-function updateStatusMessage(message) {
-  statusMessageElement.textContent = message;
-}
-
-function getCellPosition(cellIndex) {
-  return {
-    row: Math.floor(cellIndex / boardSize),
-    column: cellIndex % boardSize,
-  };
+  return button;
 }
 
 function renderBoard() {
   boardElement.style.setProperty('--board-size', boardSize);
-  boardElement.innerHTML = '';
+  boardElement.replaceChildren(
+    ...Array.from({ length: boardSize * boardSize }, (_, index) =>
+      createCellButton(index),
+    ),
+  );
+}
 
-  for (let cellIndex = 0; cellIndex < boardSize * boardSize; cellIndex += 1) {
-    const { row, column } = getCellPosition(cellIndex);
-    const cellButton = document.createElement('button');
+function setStatus(message) {
+  statusMessageElement.textContent = message;
+}
 
-    cellButton.type = 'button';
-    cellButton.className = 'cell';
-    cellButton.dataset.cellIndex = cellIndex;
+// --- Win detection ---
 
-    const cellValue = boardCells[row][column];
-    cellButton.textContent = cellValue === CELL_EMPTY ? '' : getPlayerMark(cellValue);
-
-    boardElement.appendChild(cellButton);
+/** Returns the player who owns a full line, or CELL_EMPTY if none. */
+function winnerOfLine(line) {
+  const first = line[0];
+  if (first === CELL_EMPTY) {
+    return CELL_EMPTY;
   }
+  return line.every((cell) => cell === first) ? first : CELL_EMPTY;
 }
 
-function getWinningPlayerInLine(line) {
-  const firstCell = line[0];
-  const isWinningLine =
-    firstCell !== CELL_EMPTY && line.every((cell) => cell === firstCell);
-
-  return isWinningLine ? firstCell : CELL_EMPTY;
+function column(colIndex) {
+  return board.map((row) => row[colIndex]);
 }
 
-function getColumn(columnIndex) {
-  return boardCells.map((row) => row[columnIndex]);
+function mainDiagonal() {
+  return board.map((row, index) => row[index]);
 }
 
-function getMainDiagonal() {
-  return boardCells.map((row, rowIndex) => row[rowIndex]);
+function antiDiagonal() {
+  return board.map((row, index) => row[boardSize - 1 - index]);
 }
 
-function getAntiDiagonal() {
-  return boardCells.map((row, rowIndex) => row[boardSize - 1 - rowIndex]);
+/** Collect every row, column, and both diagonals to check for a win. */
+function allLines() {
+  const lines = [...board];
+  for (let index = 0; index < boardSize; index += 1) {
+    lines.push(column(index));
+  }
+  lines.push(mainDiagonal(), antiDiagonal());
+  return lines;
 }
 
 function findWinner() {
-  for (let rowIndex = 0; rowIndex < boardSize; rowIndex += 1) {
-    const rowWinner = getWinningPlayerInLine(boardCells[rowIndex]);
-    if (rowWinner !== CELL_EMPTY) {
-      return rowWinner;
+  for (const line of allLines()) {
+    const winner = winnerOfLine(line);
+    if (winner !== CELL_EMPTY) {
+      return winner;
     }
   }
-
-  for (let columnIndex = 0; columnIndex < boardSize; columnIndex += 1) {
-    const columnWinner = getWinningPlayerInLine(getColumn(columnIndex));
-    if (columnWinner !== CELL_EMPTY) {
-      return columnWinner;
-    }
-  }
-
-  const mainDiagonalWinner = getWinningPlayerInLine(getMainDiagonal());
-  if (mainDiagonalWinner !== CELL_EMPTY) {
-    return mainDiagonalWinner;
-  }
-
-  return getWinningPlayerInLine(getAntiDiagonal());
+  return CELL_EMPTY;
 }
 
-function hasNoEmptyCells() {
-  return boardCells.every((row) => row.every((cell) => cell !== CELL_EMPTY));
+function isBoardFull() {
+  return board.every((row) => row.every((cell) => cell !== CELL_EMPTY));
 }
+
+// --- Game flow ---
 
 function switchPlayer() {
-  activePlayer = activePlayer === PLAYER_X ? PLAYER_O : PLAYER_X;
+  currentPlayer = currentPlayer === PLAYER_X ? PLAYER_O : PLAYER_X;
 }
 
-function startNewGame() {
-  boardCells = createEmptyBoard(boardSize);
-  activePlayer = PLAYER_X;
-  isGameOver = false;
-  updateStatusMessage(`${getPlayerMark(activePlayer)}'s turn`);
+function startGame() {
+  board = createEmptyBoard(boardSize);
+  currentPlayer = PLAYER_X;
+  gameOver = false;
+  setStatus(`${getMark(currentPlayer)}'s turn`);
   renderBoard();
 }
 
-function onCellClick(event) {
-  const clickedCell = event.target.closest('.cell');
-  if (!clickedCell || isGameOver) {
-    return;
-  }
-
-  const cellIndex = Number(clickedCell.dataset.cellIndex);
-  const { row, column } = getCellPosition(cellIndex);
-
-  if (boardCells[row][column] !== CELL_EMPTY) {
-    return;
-  }
-
-  boardCells[row][column] = activePlayer;
-  clickedCell.textContent = getPlayerMark(activePlayer);
-
+function endTurn() {
   const winner = findWinner();
   if (winner !== CELL_EMPTY) {
-    isGameOver = true;
-    updateStatusMessage(`${getPlayerMark(winner)} wins!`);
+    gameOver = true;
+    setStatus(`${getMark(winner)} wins!`);
     return;
   }
 
-  if (hasNoEmptyCells()) {
-    isGameOver = true;
-    updateStatusMessage("It's a draw!");
+  if (isBoardFull()) {
+    gameOver = true;
+    setStatus("It's a draw!");
     return;
   }
 
   switchPlayer();
-  updateStatusMessage(`${getPlayerMark(activePlayer)}'s turn`);
+  setStatus(`${getMark(currentPlayer)}'s turn`);
+}
+
+function onCellClick(event) {
+  const cell = event.target.closest('.cell');
+  if (!cell || gameOver) {
+    return;
+  }
+
+  const { row, col } = indexToRowCol(Number(cell.dataset.index));
+  if (board[row][col] !== CELL_EMPTY) {
+    return;
+  }
+
+  board[row][col] = currentPlayer;
+  setCellMark(cell, currentPlayer);
+  endTurn();
 }
 
 function onBoardSizeSubmit(event) {
   event.preventDefault();
 
-  if (!readBoardSizeFromInput()) {
+  const size = Number(boardSizeInput.value);
+  if (!isValidBoardSize(size)) {
+    alert(
+      `Board size must be a whole number between ${MIN_BOARD_SIZE} and ${MAX_BOARD_SIZE}.`,
+    );
     return;
   }
 
-  startNewGame();
+  boardSize = size;
+  startGame();
 }
 
+// --- Init ---
+
 boardSizeForm.addEventListener('submit', onBoardSizeSubmit);
-resetButton.addEventListener('click', startNewGame);
+resetButton.addEventListener('click', startGame);
 boardElement.addEventListener('click', onCellClick);
 
-startNewGame();
+startGame();

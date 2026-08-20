@@ -2,10 +2,18 @@
   box-sizing: border-box;
 }
 
+:root {
+  --color-x: #c62828;
+  --color-o: #000;
+  --color-border: #333;
+  --color-surface: #fff;
+  --color-bg: #f7f7f7;
+}
+
 body {
   margin: 0;
   font-family: Arial, sans-serif;
-  background: #f7f7f7;
+  background: var(--color-bg);
   color: #222;
   line-height: 1.5;
 }
@@ -26,7 +34,7 @@ body {
   min-height: 1.5rem;
   font-size: 1.1rem;
   font-weight: 600;
-  color: #c62828;
+  color: var(--color-x);
 }
 
 .rules,
@@ -35,7 +43,7 @@ body {
   padding: 16px;
   border: 1px solid #ddd;
   border-radius: 8px;
-  background: #fff;
+  background: var(--color-surface);
 }
 
 .rules h2,
@@ -51,6 +59,14 @@ body {
 
 .rules li + li {
   margin-top: 8px;
+}
+
+.mark-x {
+  color: var(--color-x);
+}
+
+.mark-o {
+  color: var(--color-o);
 }
 
 .settings-form label {
@@ -81,8 +97,8 @@ body {
   grid-template-columns: repeat(var(--board-size), 1fr);
   width: var(--board-width);
   margin-top: 20px;
-  border: 2px solid #333;
-  background: #fff;
+  border: 2px solid var(--color-border);
+  background: var(--color-surface);
 }
 
 .cell {
@@ -90,8 +106,8 @@ body {
   width: 100%;
   margin: 0;
   padding: 0;
-  border: 1px solid #333;
-  background: #fff;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
   font-size: clamp(1rem, calc(var(--board-width) / var(--board-size) * 0.55), 3rem);
   line-height: 1;
   cursor: pointer;
@@ -99,6 +115,16 @@ body {
 
 .cell:hover {
   background: #f5f5f5;
+}
+
+.cell--x {
+  color: var(--color-x);
+  font-weight: 700;
+}
+
+.cell--o {
+  color: var(--color-o);
+  font-weight: 700;
 }
 
 .button {

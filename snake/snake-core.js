@@ -181,7 +181,7 @@ const SnakeCore = (() => {
     }
 
     queueDirection(direction) {
-      if (!direction || OPPOSITE_DIRECTION[direction] === this.currentDirection) {
+      if (!direction || OPPOSITE_DIRECTION[direction] === this.queuedDirection) {
         return false;
       }
 

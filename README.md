@@ -6,5 +6,5 @@ A collection of simple browser games. Open each game's `index.html` in your brow
 
 | Folder | Description | Language |
 |--------|-------------|----------|
-| `tic-tac-toe` | Two-player tic-tac-toe on an N x N board (default 3). Win with a full row, column, or main diagonal. | JavaScript |
-| `snake` | Classic snake (`index.html`) and maze mode (`maze.html`) with 3 stages. Shared shell in `snake-shell.js`; scenes in `scene-data.js`. | JavaScript |
+| [`tic-tac-toe`](docs/tic-tac-toe.md) | Two-player tic-tac-toe on an N × N board (default 3). Red **X**, black **O**. See [Tic-Tac-Toe docs](docs/tic-tac-toe.md). | JavaScript |
+| [`snake`](docs/snake.md) | Classic snake (`index.html`) and maze mode (`maze.html`) with 3 stages. See [Snake docs](docs/snake.md) for controls, stages, and screenshots. | JavaScript |

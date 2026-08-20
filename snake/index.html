@@ -1,20 +1,70 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-	<title>Snake</title>
-	<link rel="stylesheet" type="text/css" href="./style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Snake</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-	<canvas id="land-canvas" width="600" height="600" style="float:left">
-	</canvas>
-	<div class="control">
-		<h2 id="label" >Mode A</h2>
-		<h2 id="labelScore" >Score: <span>1</span></h2>
-		<button id="btn-start" class="button">Start</button>
-		<button id="btn-stop" class="button">Stop</button> <br> <br>
-		<button id="btn-change-mode" class="button">Change Mode</button>
+  <main class="game">
+    <header class="game-header">
+      <div class="header-top">
+        <h1>Snake</h1>
+        <nav class="game-nav" aria-label="Game modes">
+          <a href="index.html" aria-current="page">Classic</a>
+          <a href="maze.html">Maze</a>
+        </nav>
+      </div>
+      <p id="status-message" class="status-banner status-idle" role="status" aria-live="polite">
+        Press Start, Space, or an arrow key to play.
+      </p>
+    </header>
 
-		<script type="text/javascript" src="./app.js"></script>
-	</div>
+    <div class="game-layout">
+      <div class="board-panel">
+        <canvas id="game-canvas" width="600" height="600" aria-label="Snake game board"></canvas>
+        <p id="speed-badge" class="speed-badge" aria-live="polite">5× speed boost</p>
+      </div>
+
+      <aside class="controls">
+        <section class="panel" aria-labelledby="mode-heading">
+          <h2 id="mode-heading" class="controls-heading">Mode</h2>
+          <p id="mode-display" class="mode-display">Wall collision</p>
+          <p id="mode-description" class="mode-description">
+            Hitting a wall or yourself ends the game.
+          </p>
+        </section>
+
+        <div class="stats-grid single">
+          <div class="stat-card">
+            <span class="stat-label">Score</span>
+            <span id="score-value" class="stat-value">3</span>
+          </div>
+        </div>
+
+        <section class="panel" aria-labelledby="controls-heading">
+          <h2 id="controls-heading" class="controls-heading">Controls</h2>
+          <ul class="hint-list">
+            <li><kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> Steer the snake</li>
+            <li><kbd>Space</kbd> or arrow key to start</li>
+            <li>Hold an arrow key for 5× speed</li>
+          </ul>
+        </section>
+
+        <div class="controls-row">
+          <button type="button" id="start-game-button" class="button">Start</button>
+          <button type="button" id="reset-game-button" class="button button-danger">Stop</button>
+        </div>
+
+        <button type="button" id="toggle-mode-button" class="button button-secondary button-full">
+          Switch mode
+        </button>
+      </aside>
+    </div>
+  </main>
+  <script src="snake-core.js"></script>
+  <script src="snake-renderer.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>

@@ -1,3 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" version="1.1">
-	<circle cx="15" cy="15" r="13" stroke="black" stroke-width="2" opacity="0.5" fill="green" />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30">
+  <path d="M15 4 C10 4 7 8 7 12 C7 16 9 18 9 20 L9 24 C9 25 10 26 11 26 L13 26 C14 26 15 25 15 24 L15 22 C15 22 15 22 15 22 C15 22 15 22 15 22 L15 24 C15 25 16 26 17 26 L19 26 C20 26 21 25 21 24 L21 20 C21 18 23 16 23 12 C23 8 20 4 15 4 Z" fill="#d32f2f" stroke="#8b0000" stroke-width="1.5"/>
+  <path d="M15 3 C14 1 12 1 11 2 C10 3 11 5 12 5 C13 4 15 3 15 3 Z" fill="#6d4c41"/>
+  <ellipse cx="12" cy="11" rx="1.2" ry="1.5" fill="#ffffff" opacity="0.45"/>
 </svg>

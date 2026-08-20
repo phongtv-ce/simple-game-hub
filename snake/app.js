@@ -1,229 +1,196 @@
-const landCanvas = document.getElementById("land-canvas");
-var ctx = landCanvas.getContext("2d");
-const btnStart = document.getElementById("btn-start");
-const btnStop = document.getElementById("btn-stop");
-const btnChangeMode = document.getElementById("btn-change-mode");
-const lblMode = document.getElementById("label");
-const lblScore = document.getElementById("labelScore");
+const GRID_SIZE = 20;
+const CELL_SIZE = 30;
+const CANVAS_SIZE = GRID_SIZE * CELL_SIZE;
+const { SnakeGame, MODE, MODE_INFO, getDirectionFromKey, isStartKey } = SnakeCore;
+const { drawSnake, drawFoodAt } = SnakeRenderer;
 
-const cellSize = 30;
-const gridX = 20;
-const gridY =20;
-var imgSnake = new Image();
-var imgFood = new Image();
-let iTimer;
-let gameRunning = false;
-let gameMode = 1;
+const canvas = document.getElementById('game-canvas');
+const canvasContext = canvas.getContext('2d');
+const statusMessageElement = document.getElementById('status-message');
+const modeDisplayElement = document.getElementById('mode-display');
+const modeDescriptionElement = document.getElementById('mode-description');
+const scoreValueElement = document.getElementById('score-value');
+const speedBadgeElement = document.getElementById('speed-badge');
+const startGameButton = document.getElementById('start-game-button');
+const resetGameButton = document.getElementById('reset-game-button');
+const toggleModeButton = document.getElementById('toggle-mode-button');
 
-const KEY = {
-	LEFT: 37,
-    UP: 38,
-    RIGHT: 39,
-    DOWN: 40
+const game = new SnakeGame({
+  gridSize: GRID_SIZE,
+  startPosition: { x: 9, y: 9 },
+  initialDirection: 'right',
+  initialLength: 3,
+  gameMode: MODE.WALLS,
+});
+
+let gameLoopTimerId = null;
+const SPEED_BOOST = 5;
+const heldDirectionKeys = new Set();
+
+function getLoopIntervalMs() {
+  return heldDirectionKeys.size > 0 ? game.tickMs / SPEED_BOOST : game.tickMs;
 }
 
+function updateGameLoopSpeed() {
+  if (gameLoopTimerId === null) {
+    return;
+  }
 
-const initSnakePosition = {
-	x:9,
-	y:9
+  clearInterval(gameLoopTimerId);
+  gameLoopTimerId = setInterval(handleTick, getLoopIntervalMs());
 }
 
-imgSnake.src = "./snake.svg";
-imgFood.src = "./food.svg";
+function startGameLoop() {
+  if (gameLoopTimerId !== null) {
+    clearInterval(gameLoopTimerId);
+  }
 
-
-let getKey = KEY.RIGHT;
-var snake  = {
-	body: [initSnakePosition],
-	dir: KEY.RIGHT,
-	length:1
+  gameLoopTimerId = setInterval(handleTick, getLoopIntervalMs());
 }
 
-var food = {
-	x:0,
-	y:0
+function setSpeedBoost(active) {
+  speedBadgeElement.classList.toggle('is-active', active);
 }
 
-function clearRect(x,y){
-	ctx.clearRect(x*cellSize,y*cellSize,cellSize,cellSize);
+function stopGameLoop(message, state = 'idle') {
+  if (gameLoopTimerId !== null) {
+    clearInterval(gameLoopTimerId);
+    gameLoopTimerId = null;
+  }
+
+  heldDirectionKeys.clear();
+  setSpeedBoost(false);
+
+  if (message) {
+    setStatus(message, state);
+  }
 }
 
-function drawSnake(x,y){
-	ctx.drawImage(imgSnake,x*cellSize,y*cellSize);
-}
-function drawFood(x,y){
-	ctx.drawImage(imgFood,x*cellSize,y*cellSize);
-}
-function changeSnakeDirection(e){
-	switch(e.keyCode){
-		case KEY.LEFT:
-			if(snake.dir == KEY.RIGHT) // khong cho di chuyen nguoc
-				break;
-			getKey = KEY.LEFT; 
-			// get key luu key lai den khi move snake thi moi cap nhat snake direction  de tranh 
-			// loi ran van di chuyen nguoc do ran chua di chuyen ma snake.dir da cap nhat moi 
-			break;
-		case KEY.RIGHT:
-			if(snake.dir == KEY.LEFT)
-				break;
-			getKey = KEY.RIGHT;
-			break;
-		case KEY.UP:
-			if(snake.dir == KEY.DOWN)
-				break;
-			getKey = KEY.UP;
-			break;
-		case KEY.DOWN:
-			if(snake.dir == KEY.UP)
-				break;
-			getKey = KEY.DOWN;
-			break;
-	}
+function setStatus(message, state = 'idle') {
+  statusMessageElement.textContent = message;
+  statusMessageElement.className = `status-banner status-${state}`;
 }
 
-function randomNum(max) {
-    return Math.floor(Math.random() * max);
+function updateScoreDisplay() {
+  scoreValueElement.textContent = game.score;
 }
 
-function check(x,y){ // kiem tra xem vi tri x,y hop le hay ko
-	if(x<0||y<0||x>=gridX||y>=gridY)
-		return false;
-	for(let i in snake.body){
-		if(snake.body[i].x == x && snake.body[i].y == y)
-			return false;
-	}
-	return true;
+function updateModeDisplay() {
+  const { title, description } = MODE_INFO[game.gameMode];
+  modeDisplayElement.textContent = title;
+  modeDescriptionElement.textContent = description;
 }
 
-function createFood(){ //tao moi moi
-	clearRect(food.x,food.y);
-	do{
-		food.x = randomNum(gridX);
-		food.y = randomNum(gridY);
-	}while(check(food.x,food.y)==false);
-	drawFood(food.x,food.y);
+function renderBoard() {
+  canvasContext.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+  drawSnake(canvasContext, game.snakeSegments, CELL_SIZE, game.currentDirection);
+
+  if (game.foodCell) {
+    drawFoodAt(canvasContext, game.foodCell.x, game.foodCell.y, CELL_SIZE);
+  }
 }
 
-function moveSnake(){
-	const getHead = snake.body[snake.body.length-1];
-	let newPos = {x:0,y:0};
-	snake.dir = getKey; // read the last key receive; 
-	switch(snake.dir){
-		case KEY.LEFT:
-			
-			newPos.x=getHead.x-1;
-			newPos.y=getHead.y;
-			break;
-		case KEY.RIGHT:
-			
-			newPos.x=getHead.x+1;
-			newPos.y=getHead.y;
-			break;
-		case KEY.UP:
-			
-			newPos.x=getHead.x;
-			newPos.y=getHead.y-1;
-			break;
-		case KEY.DOWN:
-			
-			newPos.x=getHead.x;
-			newPos.y=getHead.y+1;
-			break;
-	}
-	
-	if(gameMode==0){ //dat vi tri moi game mode free
-		if(newPos.x >= gridX)
-			newPos.x = 0;
-		if(newPos.x < 0)
-			newPos.x = gridX-1;
-		if(newPos.y >= gridY)
-			newPos.y = 0;
-		if(newPos.y < 0)
-			newPos.y = gridY-1;
-	}
-	if(check(newPos.x, newPos.y)==false){
-		if(gameRunning){
-			gameRunning=false;
-			clearInterval(iTimer);
-			alert("Game Stop!!");
-		}
-	}
-	
-	snake.body.push(newPos);
-	drawSnake(newPos.x,newPos.y);
-
-	if(newPos.x == food.x && newPos.y ==food.y){
-		snake.length=snake.length+1;
-		lblScore.innerHTML = `Score: <span>${snake.length}</span>`;		
-		createFood();
-	}
-	
-	if(snake.length<snake.body.length){
-		clearRect(snake.body[0].x,snake.body[0].y);
-		snake.body.shift();
-
-	}
+function resetGameState() {
+  stopGameLoop('Press Start, Space, or an arrow key to play.');
+  game.reset();
+  updateScoreDisplay();
+  renderBoard();
 }
 
-function gameReset(){
-	snake  = {
-		body: [initSnakePosition],
-		dir: KEY.RIGHT,
-		length:1
-	}
-
-	food = {
-		x:0,
-		y:0
-	}
-
-	gameRunning = false;
-
-	if(iTimer)
-		clearInterval(iTimer);
-
-	//gameMode=0;
-	//lblMode.textContent = "Mode B";
-	lblScore.innerHTML = `Score: <span>${snake.length}</span>`;	
-	ctx.clearRect(0,0,cellSize*gridX,cellSize*gridY);
-
-	drawSnake(snake.body[0].x,snake.body[0].y);
-	//drawFood();
-	//createFood();
+function startNewGame(direction) {
+  stopGameLoop();
+  game.reset();
+  game.start(direction);
+  updateScoreDisplay();
+  setStatus('Use arrow keys to move. Hold a key for 5× speed.', 'playing');
+  renderBoard();
+  startGameLoop();
 }
 
-function gameStart(e){
-	gameReset();
-	gameRunning = true;
-	createFood();
-	iTimer = setInterval(moveSnake, 500);
+function handleDirectionBoostKeyDown(event) {
+  const direction = getDirectionFromKey(event.key);
+  if (!direction) {
+    return;
+  }
+
+  const wasBoosted = heldDirectionKeys.size > 0;
+  heldDirectionKeys.add(event.key);
+  setSpeedBoost(true);
+
+  if (!wasBoosted && heldDirectionKeys.size > 0) {
+    updateGameLoopSpeed();
+  }
 }
 
-function test(){
-	for(let i=0; i<20; i++)
-		for(let j=0; j<20; j++)
-			drawFood(i,j);
+function handleDirectionBoostKeyUp(event) {
+  const direction = getDirectionFromKey(event.key);
+  if (!direction || !heldDirectionKeys.delete(event.key)) {
+    return;
+  }
+
+  if (heldDirectionKeys.size === 0) {
+    setSpeedBoost(false);
+    updateGameLoopSpeed();
+  }
 }
 
-function changeMode(e){
-	if(gameRunning==true){
-		alert("Can't change mode because game is running.\nYou can change mode when game stoped!!");
-		return;
-	}
-	if(gameMode == 0){
-		gameMode=1;
-		lblMode.textContent = "Mode A";
-	}else if(gameMode == 1){
-		gameMode=0;
-		lblMode.textContent = "Mode B";
-	}else{
-		gameMode = 0;
-		lblMode.textContent = "Mode B";
-	}
+function handleTick() {
+  const result = game.move();
+
+  if (result.status === 'gameOver') {
+    stopGameLoop(
+      'Game over. Press Stop to reset, or Start, Space, or an arrow key to play again.',
+      'gameover'
+    );
+    return;
+  }
+
+  updateScoreDisplay();
+  renderBoard();
 }
 
-btnChangeMode.addEventListener('click',changeMode);
-btnStart.addEventListener('click',gameStart);
-btnStop.addEventListener('click',gameReset);
-window.addEventListener('keydown', changeSnakeDirection);
-window.addEventListener('load',gameReset);
+function toggleWrapMode() {
+  if (game.isGameActive) {
+    setStatus('Stop the game before changing mode.', 'playing');
+    return;
+  }
+
+  game.toggleWrapMode();
+  updateModeDisplay();
+  setStatus(MODE_INFO[game.gameMode].description);
+}
+
+startGameButton.addEventListener('click', () => startNewGame());
+resetGameButton.addEventListener('click', resetGameState);
+toggleModeButton.addEventListener('click', toggleWrapMode);
+
+function handleKeyDown(event) {
+  const direction = getDirectionFromKey(event.key);
+
+  if (gameLoopTimerId === null && (isStartKey(event.key) || direction)) {
+    event.preventDefault();
+    startNewGame(direction ?? undefined);
+
+    if (direction) {
+      handleDirectionBoostKeyDown(event);
+    }
+
+    return;
+  }
+
+  if (game.isGameActive) {
+    game.handleDirectionKey(event);
+    handleDirectionBoostKeyDown(event);
+  }
+}
+
+function handleKeyUp(event) {
+  handleDirectionBoostKeyUp(event);
+}
+
+window.addEventListener('keydown', handleKeyDown);
+window.addEventListener('keyup', handleKeyUp);
+window.addEventListener('load', () => {
+  updateModeDisplay();
+  resetGameState();
+});

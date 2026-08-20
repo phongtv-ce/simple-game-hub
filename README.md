@@ -7,4 +7,4 @@ A collection of simple browser games. Open each game's `index.html` in your brow
 | Folder | Description | Language |
 |--------|-------------|----------|
 | `tic-tac-toe` | Two-player tic-tac-toe on an N x N board (default 3). Win with a full row, column, or main diagonal. | JavaScript |
-| `snake` | Classic snake on a 20 x 20 grid. Mode A: walls block movement. Mode B: snake wraps around edges. | JavaScript |
+| `snake` | Classic snake (`index.html`) and maze mode (`maze.html`) with 3 stages. Scene layouts and color themes live in `scene-data.js`. | JavaScript |

@@ -1,7 +1,7 @@
 const GRID_SIZE = 20;
-const CELL_SIZE = 30;
+const CELL_SIZE = SnakeShell.CELL_SIZE;
 const CANVAS_SIZE = GRID_SIZE * CELL_SIZE;
-const { SnakeGame, MODE, MODE_INFO, getDirectionFromKey, isStartKey } = SnakeCore;
+const { SnakeGame, MODE, MODE_INFO } = SnakeCore;
 const { drawSnake, drawFoodAt } = SnakeRenderer;
 
 const canvas = document.getElementById('game-canvas');
@@ -23,52 +23,14 @@ const game = new SnakeGame({
   gameMode: MODE.WALLS,
 });
 
-let gameLoopTimerId = null;
-const SPEED_BOOST = 5;
-const heldDirectionKeys = new Set();
-
-function getLoopIntervalMs() {
-  return heldDirectionKeys.size > 0 ? game.tickMs / SPEED_BOOST : game.tickMs;
-}
-
-function updateGameLoopSpeed() {
-  if (gameLoopTimerId === null) {
-    return;
-  }
-
-  clearInterval(gameLoopTimerId);
-  gameLoopTimerId = setInterval(handleTick, getLoopIntervalMs());
-}
-
-function startGameLoop() {
-  if (gameLoopTimerId !== null) {
-    clearInterval(gameLoopTimerId);
-  }
-
-  gameLoopTimerId = setInterval(handleTick, getLoopIntervalMs());
-}
-
-function setSpeedBoost(active) {
-  speedBadgeElement.classList.toggle('is-active', active);
-}
+const setStatus = SnakeShell.createStatusController(statusMessageElement);
 
 function stopGameLoop(message, state = 'idle') {
-  if (gameLoopTimerId !== null) {
-    clearInterval(gameLoopTimerId);
-    gameLoopTimerId = null;
-  }
-
-  heldDirectionKeys.clear();
-  setSpeedBoost(false);
+  loop.stop();
 
   if (message) {
     setStatus(message, state);
   }
-}
-
-function setStatus(message, state = 'idle') {
-  statusMessageElement.textContent = message;
-  statusMessageElement.className = `status-banner status-${state}`;
 }
 
 function updateScoreDisplay() {
@@ -102,36 +64,9 @@ function startNewGame(direction) {
   game.reset();
   game.start(direction);
   updateScoreDisplay();
-  setStatus('Use arrow keys to move. Hold a key for 5× speed.', 'playing');
+  setStatus('Use arrow keys to move. Space to pause. Hold a key ~0.2s for 5× speed.', 'playing');
   renderBoard();
-  startGameLoop();
-}
-
-function handleDirectionBoostKeyDown(event) {
-  const direction = getDirectionFromKey(event.key);
-  if (!direction) {
-    return;
-  }
-
-  const wasBoosted = heldDirectionKeys.size > 0;
-  heldDirectionKeys.add(event.key);
-  setSpeedBoost(true);
-
-  if (!wasBoosted && heldDirectionKeys.size > 0) {
-    updateGameLoopSpeed();
-  }
-}
-
-function handleDirectionBoostKeyUp(event) {
-  const direction = getDirectionFromKey(event.key);
-  if (!direction || !heldDirectionKeys.delete(event.key)) {
-    return;
-  }
-
-  if (heldDirectionKeys.size === 0) {
-    setSpeedBoost(false);
-    updateGameLoopSpeed();
-  }
+  loop.start();
 }
 
 function handleTick() {
@@ -149,6 +84,12 @@ function handleTick() {
   renderBoard();
 }
 
+const loop = SnakeShell.createLoopController({
+  game,
+  speedBadgeElement,
+  onTick: handleTick,
+});
+
 function toggleWrapMode() {
   if (game.isGameActive) {
     setStatus('Stop the game before changing mode.', 'playing');
@@ -164,32 +105,14 @@ startGameButton.addEventListener('click', () => startNewGame());
 resetGameButton.addEventListener('click', resetGameState);
 toggleModeButton.addEventListener('click', toggleWrapMode);
 
-function handleKeyDown(event) {
-  const direction = getDirectionFromKey(event.key);
+SnakeShell.bindKeyboard({
+  loop,
+  game,
+  onStartWhenIdle: startNewGame,
+  onPause: () => setStatus('Paused. Press Space to resume.', 'idle'),
+  onResume: () => setStatus('Use arrow keys to move. Space to pause. Hold a key ~0.2s for 5× speed.', 'playing'),
+});
 
-  if (gameLoopTimerId === null && (isStartKey(event.key) || direction)) {
-    event.preventDefault();
-    startNewGame(direction ?? undefined);
-
-    if (direction) {
-      handleDirectionBoostKeyDown(event);
-    }
-
-    return;
-  }
-
-  if (game.isGameActive) {
-    game.handleDirectionKey(event);
-    handleDirectionBoostKeyDown(event);
-  }
-}
-
-function handleKeyUp(event) {
-  handleDirectionBoostKeyUp(event);
-}
-
-window.addEventListener('keydown', handleKeyDown);
-window.addEventListener('keyup', handleKeyUp);
 window.addEventListener('load', () => {
   updateModeDisplay();
   resetGameState();

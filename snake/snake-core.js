@@ -253,7 +253,7 @@ const SnakeCore = (() => {
       this.startPosition = { ...scene.start };
       this.initialDirection = scene.direction ?? 'right';
       this.initialLength = scene.initialLength ?? 3;
-      this.gameMode = MODE.WALLS;
+      this.gameMode = MODE.WRAP;
       this.blockers = createMazeBlockers(scene.cells);
       this.tickMs = scene.tickMs ?? this.tickMs;
       this.reset();

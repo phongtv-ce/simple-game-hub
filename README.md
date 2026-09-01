@@ -1,12 +1,53 @@
 # Simple Game Hub
 
-A collection of simple browser games. Plain JavaScript games run by opening their `index.html` in a browser; React games are Vite projects you start with `npm install && npm run dev` inside the game folder.
+A unified React app with six browser games. Each game keeps its logic separate from UI components under `src/games/<name>/`.
+
+## Quick start
+
+```bash
+pnpm install
+pnpm dev
+```
+
+Open the local dev URL, pick a game from the home page, or go directly to a route (e.g. `/snake`, `/tetris`).
 
 ## Games
 
-| Folder | Description | Language |
-|--------|-------------|----------|
-| [`tic-tac-toe`](docs/tic-tac-toe.md) | Two-player tic-tac-toe on an N × N board (default 3). Red **X**, black **O**. See [Tic-Tac-Toe docs](docs/tic-tac-toe.md). | React, TypeScript, Tailwind CSS |
-| [`snake`](docs/snake.md) | Classic snake and maze mode (3 stages) in one React app. See [Snake docs](docs/snake.md) for controls, stages, and screenshots. | React, TypeScript, Vite, Tailwind CSS |
-| [`five-in-a-row`](docs/five-in-a-row.md) | Five in a Row (Gomoku) on an N × N board (default 15). Red **X** vs black **O**. Play vs a computer opponent or a friend. See [Five in a Row docs](docs/five-in-a-row.md). | React, TypeScript |
-| [`miner`](miner/README.md) | Minesweeper with Beginner / Intermediate / Expert boards, safe first click, flags, chording and a timer. See [Miner docs](miner/README.md). | React, TypeScript, Vite, Tailwind CSS |
+| Game | Route | Docs |
+|------|-------|------|
+| Snake | `/snake` | [Snake](docs/snake.md) — classic + maze modes, 3 stages |
+| Tetris | `/tetris` | [Tetris](docs/tetris.md) — hold, levels, line scoring |
+| Tic-Tac-Toe | `/tic-tac-toe` | [Tic-Tac-Toe](docs/tic-tac-toe.md) — N×N two-player board |
+| Five in a Row | `/five-in-a-row` | [Five in a Row](docs/five-in-a-row.md) — Gomoku vs AI or friend |
+| Miner | `/miner` | [Miner](docs/miner.md) — minesweeper, 3 difficulties |
+| Sudoku | `/sudoku` | [Sudoku](docs/sudoku.md) — notes, hints, 4 difficulties |
+
+## Project layout
+
+```
+src/
+├── App.tsx              # Routes
+├── pages/HomePage.tsx   # Game picker
+└── games/
+    └── <name>/
+        ├── logic/       # Pure game engine (no React)
+        ├── components/  # UI
+        ├── hooks/       # React wiring (where needed)
+        └── *Page.tsx    # Page entry
+```
+
+## Build
+
+```bash
+pnpm build
+pnpm preview
+```
+
+Output goes to `dist/`.
+
+## Tech stack
+
+- **React 19** + **TypeScript**
+- **Vite** for dev and production builds
+- **Tailwind CSS v4** via `@tailwindcss/vite`
+- **React Router** for in-app navigation between games

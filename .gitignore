@@ -1,3 +1,5 @@
 .pnpm-store
-/**/node_modules/*
+node_modules
 tsconfig.tsbuildinfo
+tsconfig.node.tsbuildinfo
+dist

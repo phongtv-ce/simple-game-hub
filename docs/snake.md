@@ -2,22 +2,33 @@
 
 Browser-based Snake with two modes: **Classic** (open board) and **Maze** (three staged layouts). Both share the same core engine, renderer, and input shell.
 
-Run with `pnpm install && pnpm dev` inside the [`snake`](../snake) folder, then open the local dev URL.
+**Route:** `/snake`
+
+## Getting started
+
+From the repo root:
+
+```bash
+pnpm install
+pnpm dev
+```
+
+Then open `/snake` in the app.
 
 | Mode | Description |
 |------|-------------|
 | Classic | 20×20 open grid; toggle wall collision or wrap-around edges |
 | Maze | Three maze stages with walls, gates, and wrap-around edges |
 
-Switch between Classic and Maze using the nav in the app header.
+Switch between Classic and Maze using the toggle in the page header.
 
 ## Screenshot
 
-Maze mode — Stage 1 (**Twin Rooms**), light theme:
+Maze mode — Stage 1 (**Twin Rooms**):
 
-![Snake Maze — Twin Rooms stage with stats sidebar and wrap-around controls](images/snake/image.png)
+![Snake Maze — Twin Rooms stage with compact stats sidebar](images/snake/image.png)
 
-The board shows solid walls (grey), pass-through gates (dashed blue), the snake with a cartoon head, and a red apple. The sidebar tracks stage progress, apples eaten, length goal, color theme, and controls.
+The board shows solid walls (grey), pass-through gates (dashed outline on the floor), the snake with a cartoon head, and a red apple. The sidebar tracks stage progress, apples eaten, length goal, and controls.
 
 ## Controls
 
@@ -25,23 +36,23 @@ The board shows solid walls (grey), pass-through gates (dashed blue), the snake 
 |-------|--------|
 | **Arrow keys** | Steer the snake (direction applies immediately) |
 | **Space** | Start when idle · Pause when running · Resume when paused |
-| **Start** | Begin or restart from the stage/start position |
-| **Stop** | End the run and reset to idle |
-| **Hold arrow ~0.2 s** | 5× speed boost while held (release to return to normal speed) |
+| **Hold arrow ~0.2 s** | 5× speed boost while held |
+
+Start and resume use a **canvas overlay** (same pattern as Tetris): click **Start** / **Play Again** on the board, or press **Space** / **Enter** / an arrow key.
 
 ## Classic mode
 
 - **Grid:** 20×20, snake starts at length 3 in the center.
-- **Modes:** Switch between **Wall collision** (hitting a wall or yourself ends the game) and **Wrap-around** (leaving one edge re-enters on the opposite side).
+- **Modes:** Switch between **Wall collision** (hitting a wall or yourself ends the game) and **Wrap-around** (leaving one edge re-enters on the opposite side). Use **Switch mode** in the sidebar when idle.
 - **Goal:** Eat apples to grow; avoid collisions (in wall mode) or yourself.
 
 ## Maze mode
 
-- **Grid:** 20×20 with structured wall layouts — rooms, bars, and pillars, not single-cell obstacles.
+- **Grid:** 20×20 with structured wall layouts — rooms, bars, and pillars.
 - **Edges:** Always wrap-around (leave one side, re-enter the other).
 - **Walls:**
   - **Solid** (`#`) — blocks movement
-  - **Pass-through gates** (`o`) — walk through freely
+  - **Pass-through gates** (`o`) — same floor color as open cells, marked with a dashed border
 - **Stages:** Clear all three by eating **5 apples** per stage to reach **length 8**, then advance. The game pauses between stages so you can read the next layout before continuing.
 
 | Stage | Name | Tick speed |
@@ -50,38 +61,43 @@ The board shows solid walls (grey), pass-through gates (dashed blue), the snake 
 | 2 | Castle Bricks | 320 ms |
 | 3 | Crystal Vault | 280 ms |
 
-**Color themes:** Light, Forest, Matrix — switch from the sidebar without restarting.
+**Color themes:** Light, Forest, Matrix — open the **Theme** button in the sidebar to pick a theme from a popup. The compact sidebar matches the board height.
 
 ## Project layout
 
 ```
-snake/
-├── index.html
-├── package.json
-├── src/
-│   ├── App.tsx                 # Mode switcher (Classic / Maze)
-│   ├── components/
-│   │   ├── ClassicGame.tsx     # Classic mode UI
-│   │   ├── MazeGame.tsx        # Maze mode UI (stages, themes, progress)
-│   │   ├── GameCanvas.tsx      # Canvas wrapper
-│   │   └── ui.tsx              # Shared UI pieces
-│   ├── game/
-│   │   ├── snakeGame.ts        # SnakeGame — movement, food, collisions
-│   │   ├── sceneData.ts        # Three maze layouts, themes, stage metadata
-│   │   ├── loopController.ts   # Game loop, speed boost
-│   │   └── types.ts
-│   ├── hooks/
-│   │   └── useSnakeGame.ts     # Keyboard, pause/resume, loop wiring
-│   └── renderer/
-│       └── draw.ts             # Canvas drawing (head, body, food, maze)
-└── public/
-    └── food.svg                # Apple asset
+src/games/snake/
+├── SnakePage.tsx
+├── components/
+│   ├── ClassicGame.tsx
+│   ├── MazeGame.tsx
+│   ├── GameCanvas.tsx
+│   ├── ThemePicker.tsx
+│   └── ui.tsx
+├── logic/
+│   ├── snakeGame.ts
+│   ├── sceneData.ts
+│   ├── loopController.ts
+│   └── types.ts
+├── hooks/
+│   └── useSnakeGame.ts
+└── renderer/
+    └── draw.ts
+
+public/food.svg
 ```
 
 Scene layouts are defined as ASCII grids in `sceneData.ts` (`.` empty, `#` solid, `o` gate).
 
+## How it works
+
+- `SnakeGame` in `logic/snakeGame.ts` owns movement, food spawning, collisions, and wrap mode.
+- `LoopController` drives the tick loop and 5× speed boost on held keys.
+- `useSnakeGame` wires keyboard input, pause/resume, and React state to the canvas.
+- `draw.ts` renders classic and maze boards; maze gates use `theme.empty` fill with a dashed `passStroke` outline.
+
 ## Tips
 
 - Food never spawns on walls, gates, or snake segments.
-- In maze mode, **Start** always resets to the current stage’s start position.
-- After game over, press **Stop** for a full reset, or **Start**, **Space**, or an arrow key to retry.
+- After game over, use **Play Again** on the overlay or press **Space** / an arrow key to retry.
+- In maze mode, clearing all three stages shows a **Victory** overlay with total apples eaten.

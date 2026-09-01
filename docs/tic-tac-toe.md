@@ -1,6 +1,6 @@
 # Tic-Tac-Toe
 
-Two-player tic-tac-toe in the browser. Play on a configurable **N × N** board (default 3×3). No build step — open [`tic-tac-toe/index.html`](../tic-tac-toe/index.html) directly.
+Two-player tic-tac-toe in the browser. Play on a configurable **N × N** board (default 3×3). Built with React, TypeScript, and Tailwind CSS.
 
 | Player | Mark | Color |
 |--------|------|-------|
@@ -27,17 +27,32 @@ The status line shows the current turn or winner. Use **Apply** to resize the bo
 - Set **N** (3–15) and click **Apply** to start a new game on an N × N grid.
 - **Reset** clears the board without changing N.
 
+## Run locally
+
+```bash
+cd tic-tac-toe
+pnpm install
+pnpm dev
+```
+
 ## Project layout
 
 ```
 tic-tac-toe/
-├── index.html   # Page structure, rules, and settings
-├── style.css    # Layout, board grid, mark colors
-└── app.js       # Game logic, rendering, win detection
+├── index.html
+├── package.json
+├── vite.config.ts
+└── src/
+    ├── App.tsx          # UI and game flow
+    ├── game.ts          # Board state, moves, win detection
+    ├── components/
+    │   └── Board.tsx    # Grid and cell rendering
+    ├── index.css        # Tailwind + global styles
+    └── main.tsx
 ```
 
 ## How it works
 
 - The board is a 2D array of cell values (`0` empty, `1` = X, `2` = O).
 - After each move, every row, column, and both diagonals are checked for a full line.
-- Cell buttons are rebuilt on reset; a single click updates only the played cell during a turn.
+- Winning cells are highlighted on the board when a player wins.

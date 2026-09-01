@@ -2,12 +2,14 @@
 
 Browser-based Snake with two modes: **Classic** (open board) and **Maze** (three staged layouts). Both share the same core engine, renderer, and input shell.
 
-Open either HTML file directly in your browser — no build step required.
+Run with `pnpm install && pnpm dev` inside the [`snake`](../snake) folder, then open the local dev URL.
 
-| Mode | File | Description |
-|------|------|-------------|
-| Classic | [`snake/index.html`](../snake/index.html) | 20×20 open grid; toggle wall collision or wrap-around edges |
-| Maze | [`snake/maze.html`](../snake/maze.html) | Three maze stages with walls, gates, and wrap-around edges |
+| Mode | Description |
+|------|-------------|
+| Classic | 20×20 open grid; toggle wall collision or wrap-around edges |
+| Maze | Three maze stages with walls, gates, and wrap-around edges |
+
+Switch between Classic and Maze using the nav in the app header.
 
 ## Screenshot
 
@@ -54,19 +56,29 @@ The board shows solid walls (grey), pass-through gates (dashed blue), the snake 
 
 ```
 snake/
-├── index.html          # Classic mode page
-├── maze.html           # Maze mode page
-├── app.js              # Classic mode wiring
-├── maze-app.js         # Maze mode wiring (stages, themes, progress)
-├── snake-core.js       # SnakeGame — movement, food, collisions, wrap mode
-├── snake-renderer.js   # Canvas drawing (head, body, food, maze cells)
-├── snake-shell.js      # Shared loop, keyboard, pause/resume, speed boost
-├── scene-data.js       # Three maze layouts, themes, stage metadata
-├── style.css           # Shared UI
-└── food.svg            # Apple asset
+├── index.html
+├── package.json
+├── src/
+│   ├── App.tsx                 # Mode switcher (Classic / Maze)
+│   ├── components/
+│   │   ├── ClassicGame.tsx     # Classic mode UI
+│   │   ├── MazeGame.tsx        # Maze mode UI (stages, themes, progress)
+│   │   ├── GameCanvas.tsx      # Canvas wrapper
+│   │   └── ui.tsx              # Shared UI pieces
+│   ├── game/
+│   │   ├── snakeGame.ts        # SnakeGame — movement, food, collisions
+│   │   ├── sceneData.ts        # Three maze layouts, themes, stage metadata
+│   │   ├── loopController.ts   # Game loop, speed boost
+│   │   └── types.ts
+│   ├── hooks/
+│   │   └── useSnakeGame.ts     # Keyboard, pause/resume, loop wiring
+│   └── renderer/
+│       └── draw.ts             # Canvas drawing (head, body, food, maze)
+└── public/
+    └── food.svg                # Apple asset
 ```
 
-Scene layouts are defined as ASCII grids in `scene-data.js` (`.` empty, `#` solid, `o` gate).
+Scene layouts are defined as ASCII grids in `sceneData.ts` (`.` empty, `#` solid, `o` gate).
 
 ## Tips
 
